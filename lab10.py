@@ -20,9 +20,9 @@ class Addresses(Base):
     zip_code=Column(String)
     
     
-##    def __repr__(self):
-##        return "<Addresses(streetaddress='{}', city='{}', state='{}', zipcode='{}')>"\
-##                .format(self.streetaddress, self.city, self.state, self.zipcode)
+    def __repr__(self):
+        return "<Book(street_address='{}', city='{}', state={}, zip_code={})>"\
+                .format(self.street_address, self.city, self.state, self.zip_code)           
     
 class PeopleMaster(Base):
     __tablename__ = 'people_master'
@@ -31,23 +31,23 @@ class PeopleMaster(Base):
     person_DOB = Column(Date)
     active_phone_number = Column(String)
     
-##    def __repr__(self):
-##        return "<PeopleMaster(name='{}', dob='{}', phone='{)'>"\
-##                .format(self.name, self.dob, self.phone)
+    def __repr__(self):
+        return "<Book(person_name='{}', person_DOB='{}', active_phone_number={})>"\
+                .format(self.person_name, self.person_DOB, self.active_phone_number)
 
 class PeopleAddress(Base):
     __tablename__ = 'people_address'
     address_id = Column(Integer, primary_key=True)
-    person_id = Column(Integer)
-    p = relationship('PeopleMaster', foreign_keys=[person_id],primaryjoin='PeopleMaster.person_id == PeopleAddress.person_id')
+    person_id = Column(Integer, ForeignKey("people_master.person_id"))
+    person = relationship("PeopleMaster", backref="people_address")
 
     start_date = Column(Date)
     end_date = Column(Date)
     
-    
-##    def __repr__(self):
-##        return "<PeopleAddress(startdate={}, enddate={})>"\
-##                .format(self.startdate, self.enddate)
+    def __repr__(self):
+        return "<Book(start_date='{}', end_date='{}')>"\
+                .format(self.start_date, self.end_date)
+              
 
 def recreate_database():
     Base.metadata.drop_all(engine)
@@ -55,22 +55,23 @@ def recreate_database():
 
 
 addresses = Addresses(
-    streetaddress='Deep Learning',
+    street_address='Deep Learning',
     city='Ian Goodfellow',
     state='Andhra Pradesh',
-    zipcode='456677'
+    zip_code='456677'
 )
 
 people_master = PeopleMaster(
-    name='Deep Learning',
-    dob=datetime(2016, 11, 18),
-    phone='9627889278',
+    person_name='Deep Learning',
+    person_DOB=datetime(2016, 11, 18),
+
+    active_phone_number='9627889278',
 )
 
 people_address = PeopleAddress(
-    
-    startdate= datetime(2019, 11, 18),
-    enddate=datetime(2020, 11, 18)
+    person_id=person,
+    start_date= datetime(2019, 11, 18),
+    end_date=datetime(2020, 11, 18)
     )
 
 Base.metadata.create_all(engine)
@@ -78,8 +79,12 @@ Session = sessionmaker(bind=engine)
 
 
 s=Session()
-s.add(people_address)
-s.add(people_master)
-s.add(addresses)
-s.commit()
+##s.add(people_address)
+##s.add(people_master)
+##s.add(addresses)
+##s.commit()
+res=s.query(PeopleMaster) \
+    .join(PeopleAddress) \
+    .filter(ContactDetails.address.ilike('%glendale%')) \
+    .all()
 
